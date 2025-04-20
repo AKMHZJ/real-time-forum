@@ -1,139 +1,95 @@
-# **Phorum Architecture Blueprint**
+## real-time-forum
 
-This document provides a concise summary of the project architecture, detailing how all components of the application work together. It serves as a guide for the development team and offers clarity on the project flow.
+Remember the forum you did a while ago? Well it's time to make one even better also using JS, private messages, real time actions, live sharing video and live screen sharing too. Well, maybe not the last two. To get things straight there is a list below of what you will have to do.
 
----
+### Objectives
 
-## **Blueprint: Full Stack Project Architecture**
+On this project you will have to focus on a few points:
 
-### **1. Overview**
-- **Front-End (User Interface):**  
-  Built using HTML, CSS, and JavaScript, served directly from the back-end server. Handles user interactions such as login, registration, post viewing, commenting, liking, and filtering.
+- Registration and Login
+- Creation of posts
+  - Commenting posts
+- Private Messages
 
-- **Back-End (Application Logic):**  
-  Written in Go (Golang), serves the front-end static files, exposes RESTful APIs for front-end requests, handles business logic (authentication, CRUD operations), and communicates with the SQLite database.
+As you already did the first forum you can use part of the code, but not all of it. Your new forum will have five different parts:
 
-- **Database (Persistent Storage):**  
-  SQLite database stores user data, posts, comments, categories, and likes/dislikes.
+- **SQLite**, in which you will store data, just like in the [previous forum](../forum/README.md#Communication)
+- **Golang**, in which you will handle data and Websockets (Backend)
+- **Javascript**, in which you will handle all the Frontend events and clients Websockets
+- **HTML**, in which you will organize the elements of the page
+- **CSS**, in which you will stylize the elements of the page
 
-- **Containerization:**  
-  The entire application (front-end, back-end, and database) runs within a single Docker container for simplicity.
+You will have only one HTML file, so every change of page you want to do, should be handled in the Javascript. This can be called having a [single page application](https://en.wikipedia.org/wiki/Single-page_application).
 
----
+#### Registration and Login
 
-## **System Diagram**
+To be able to use the new and upgraded forum users will have to register and login, otherwise they will only see the registration or login page. This is premium stuff. The registration and login process should take in consideration the following features:
 
-```plaintext
-+-------------+          +-----------------------+          +-----------------+
-|  Front-End  |          |       Back-End       |          |     Database    |
-| (HTML/CSS/  |  --->    | (Golang APIs)        |  --->    |   (SQLite)      |
-|  JavaScript)|          |                      |          |                 |
-|             |          |                      |          |                 |
-+-------------+          +-----------------------+          +-----------------+
-      ^                            |                                  ^
-      |                            |                                  |
-      |                            v                                  |
-      +----------------------- API Requests --------------------------+
-```
+- Users must be able to fill a register form to register into the forum. They will have to provide at least:
+  - Nickname
+  - Age
+  - Gender
+  - First Name
+  - Last Name
+  - E-mail
+  - Password
+- The user must be able to connect using either the nickname or the e-mail combined with the password.
+- The user must be able to log out from any page on the forum.
 
----
+#### Posts and Comments
 
-## **Component Breakdown**
+This part is pretty similar to the first forum. Users must be able to:
 
-### **Front-End**
-- **Technologies:** HTML, CSS, JavaScript
-- **Responsibilities:**
-  - Display the user interface.
-  - Capture user input (forms, buttons, etc.).
-  - Interact with the back-end via AJAX (RESTful API).
-- **Served From:** Back-end server
+- Create posts
+  - Posts will have categories as in the first forum
+- Create comments on the posts
+- See posts in a feed display
+  - See comments only if they click on a post
 
-### **Back-End**
-- **Technologies:** Go (Golang)
-- **Responsibilities:**
-  - Serve static front-end files.
-  - Expose RESTful APIs for the front-end.
-  - Handle business logic (e.g., authentication, CRUD operations).
-  - Interact with the database (read/write operations).
-  - Enforce security measures like hashing passwords.
-- **Port:** `8080`
+#### Private Messages
 
-### **Database**
-- **Technology:** SQLite
-- **Responsibilities:**
-  - Store persistent data (users, posts, comments, categories, likes/dislikes).
-  - Provide structured query results for the back-end.
-  - Enforce relationships with constraints (foreign keys).
+Users will be able to send private messages to each other, so you will need to create a chat, where it will exist :
 
----
+- A section to show who is online/offline and able to talk to:
 
-## **Key Components**
+  - This section must be organized by the last message sent (just like discord). If the user is new and does not present messages you must organize it in alphabetic order.
+  - The user must be able to send private messages to the users who are online.
+  - This section must be visible at all times.
 
-- **Back-End Service:**
-  - Runs a Go application that serves both static files and APIs.
-  - Manages all front-end requests and database interactions.
+- A section that when clicked on the user that you want to send a message, reloads the past messages. Chats between users must:
 
-- **Database Service:**
-  - SQLite database initialized with schema and seed data.
-  - Persistent data stored within the container.
+  - Be visible, for this you will have to be able to see the previous messages that you had with the user
+  - Reload the last 10 messages and when scrolled up to see more messages you must provide the user with 10 more, without spamming the scroll event. **Do not forget what you learned!! (`Throttle`, `Debounce`)**
 
----
+- Messages must have a specific format:
+  - A **`date`** that shows when the message was sent
+  - The **`user name`**, that identifies the user that sent the message
 
-## **Data Flow**
+As it is expected, the messages should work in real time, in other words, if a user sends a message, the other user should receive the notification of the new message without refreshing the page. Again this is possible through the usage of WebSockets in backend and frontend.
 
-1. **User Interaction (Frontend):**
-   - User submits a request (e.g., registration, liking a post).
-   - Front-end sends an AJAX request to the back-end API.
+### Allowed Packages
 
-2. **API Processing (Backend):**
-   - Receives the request, processes it, and interacts with the database.
-   - Returns a response (success, error, or data) to the front-end.
+- All [standard go](https://golang.org/pkg/) packages are allowed.
+- [Gorilla websocket](https://pkg.go.dev/github.com/gorilla/websocket)
+- [sqlite3](https://github.com/mattn/go-sqlite3)
+- [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt)
+- [gofrs/uuid](https://github.com/gofrs/uuid) or [google/uuid](https://github.com/google/uuid)
 
-3. **Database Queries:**
-   - Backend executes SQL queries (e.g., `SELECT`, `INSERT`) to interact with the SQLite database.
-   - Results are sent back to the back-end for further processing or direct response to the user.
+> You must not use any frontend libraries or frameworks like React, Angular, Vue etc.
 
----
+This project will help you learn about:
 
-## **Project Workflow**
-
-### **1. Initial Setup**
-- Clone the repository.
-- Set up environment variables in `.env`.
-- Build and run the container using Docker.
-
-### **2. Development Process**
-- **Front-End Development:**
-  - Work on HTML, CSS, and JavaScript for user interfaces.
-  - Test API calls with mock data or the back-end.
-
-- **Back-End Development:**
-  - Develop RESTful APIs.
-  - Test APIs using tools like Postman or curl.
-  - Integrate and test with the database.
-
-- **Database Development:**
-  - Design and optimize the schema.
-  - Write and test queries.
-  - Seed sample data for testing.
-
-### **3. Testing and Debugging**
-- Test individual components independently (e.g., API endpoints, UI responsiveness).
-- Integrate the front-end and back-end.
-- Verify database interactions.
-
-### **4. Deployment**
-- Run `docker run` to deploy the application locally or in a production environment.
-
----
-
-## **Quick Summary Table**
-
-| **Component**   | **Technology**           | **Responsibilities**                                   | **Port** |
-|------------------|--------------------------|-------------------------------------------------------|----------|
-| **Frontend**     | HTML, CSS, JavaScript    | User interface, AJAX requests                         | Served via backend |
-| **Backend**      | Go (Golang)             | Business logic, API handling, database interaction    | `8080`   |
-| **Database**     | SQLite                  | Persistent storage for application data               | Internal |
-
----
-
+- The basics of web :
+  - HTML
+  - HTTP
+  - [Sessions](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#session-management-waf-protections) and [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies)
+  - CSS
+  - Backend and Frontend
+  - DOM
+- [Go routines](https://golangbot.com/goroutines/)
+- [Go channels](https://medium.com/rungo/anatomy-of-channels-in-go-concurrency-in-go-1ec336086adb)
+- [WebSockets](https://en.wikipedia.org/wiki/WebSocket):
+  - Go Websockets
+  - JS Websockets
+- SQL language
+  - Manipulation of databases
